@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-const SITE_NAME = 'EVA';
+const SITE_NAME = 'Wrappd Gift';
 const DEFAULT_TITLE = 'Premium Gift Hampers — Thoughtful Gifts Delivered Across India';
-const DEFAULT_DESC = 'EVA is India\'s premier gifting destination. Curated premium hampers for every occasion — birthdays, anniversaries, weddings & more. Beautifully packaged, delivered with care.';
+const DEFAULT_DESC = 'Wrappd Gift is India\'s premier gifting destination. Curated premium hampers for every occasion — birthdays, anniversaries, weddings & more. Beautifully packaged, delivered with care.';
 
 function setMeta(name, content) {
   if (!content) return;

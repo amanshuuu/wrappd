@@ -5,12 +5,14 @@ import usePageMeta from '../hooks/usePageMeta';
 import './ContactPage.css';
 
 export default function ContactPage() {
-  usePageMeta({ title: 'Contact Us', description: 'Get in touch with EVA. Questions about hampers, custom orders, corporate gifting — we\'d love to hear from you.' });
+  usePageMeta({ title: 'Contact Us', description: 'Get in touch with Wrappd Gift. Questions about hampers, custom orders, corporate gifting — we\'d love to hear from you.' });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (cooldown) return;
     setSending(true);
     const formData = new FormData(e.target);
     try {
@@ -21,8 +23,12 @@ export default function ContactPage() {
         message: formData.get('message'),
       });
       setSent(true);
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), 60000);
     } catch {
       setSent(true);
+      setCooldown(true);
+      setTimeout(() => setCooldown(false), 60000);
     }
     setSending(false);
   };

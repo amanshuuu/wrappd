@@ -69,7 +69,7 @@ export default function AdminProducts() {
               <tr><td colSpan="7" style={{ textAlign: 'center', padding: 40, color: '#999' }}>No products found.</td></tr>
             ) : filtered.map(p => (
               <tr key={p.id}>
-                <td data-label="Image"><img src={Array.isArray(p.images) ? p.images[0] : p.images || p.image} alt="" className="admin-table-img" /></td>
+                <td data-label="Image"><img src={Array.isArray(p.images) ? p.images[0] : p.images || p.image} alt={p.name} className="admin-table-img" onError={e => { e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="%23f5f5f5"><rect width="60" height="60"/><text x="30" y="30" text-anchor="middle" dy=".3em" font-size="20" fill="%23ccc">🎁</text></svg>'; }} /></td>
                 <td data-label="Name">{p.name}</td>
                 <td data-label="Category"><span className="admin-cat-badge">{p.category}</span></td>
                 <td data-label="Price">₹{Number(p.price).toFixed(2)}</td>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
@@ -32,17 +33,21 @@ import AdminNewsletter from './admin/AdminNewsletter';
 import AdminContactMessages from './admin/AdminContactMessages';
 import ScrollToTop from './components/ScrollToTop';
 import Analytics from './components/Analytics';
+import { supabase } from './lib/supabase';
+import CartDrawer from './components/cart/CartDrawer';
+import { useCartDrawer } from './hooks/useCartDrawer';
 import './App.css';
 
-function isLoggedIn() {
-  if (sessionStorage.getItem('admin_auth') === 'true') return true;
-  const hasCookie = document.cookie.split(';').some(c => c.trim().startsWith('admin_auth='));
-  if (hasCookie) sessionStorage.setItem('admin_auth', 'true');
-  return hasCookie;
-}
-
 function ProtectedRoute({ children }) {
-  if (!isLoggedIn()) return <Navigate to="/admin" replace />;
+  const [authed, setAuthed] = useState(null);
+  useEffect(() => {
+    if (!supabase) { setAuthed(false); return; }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthed(!!session);
+    });
+  }, []);
+  if (authed === null) return <div className="container" style={{ padding: 80, textAlign: 'center', color: '#999' }}>Checking access...</div>;
+  if (!authed) return <Navigate to="/admin" replace />;
   return <AdminLayout>{children}</AdminLayout>;
 }
 
@@ -59,6 +64,52 @@ function PublicLayout() {
   );
 }
 
+function AppShell() {
+  const { open, justAdded, openCartDrawer, closeCartDrawer } = useCartDrawer();
+
+  useEffect(() => {
+    window.__openCartDrawer = openCartDrawer;
+    return () => { delete window.__openCartDrawer; };
+  }, [openCartDrawer]);
+
+  return (
+    <>
+      <Routes>
+        <Route path="/admin" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />
+        <Route path="/admin/products/new" element={<ProtectedRoute><AdminProductForm /></ProtectedRoute>} />
+        <Route path="/admin/products/edit/:id" element={<ProtectedRoute><AdminProductForm /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
+        <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
+        <Route path="/admin/newsletter" element={<ProtectedRoute><AdminNewsletter /></ProtectedRoute>} />
+        <Route path="/admin/messages" element={<ProtectedRoute><AdminContactMessages /></ProtectedRoute>} />
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/collections/:category" element={<CollectionPage />} />
+          <Route path="/collections" element={<CollectionPage />} />
+          <Route path="/products/:slug" element={<ProductPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/packaging" element={<PackagingGallery />} />
+          <Route path="/track-order" element={<OrderTrackingPage />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/return-policy" element={<ReturnPolicy />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+      <CartDrawer open={open} justAdded={justAdded} onClose={closeCartDrawer} />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <Router>
@@ -67,37 +118,7 @@ export default function App() {
       <div className="app">
         <Analytics />
         <ScrollToTop />
-        <Routes>
-          <Route path="/admin" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/products" element={<ProtectedRoute><AdminProducts /></ProtectedRoute>} />
-          <Route path="/admin/products/new" element={<ProtectedRoute><AdminProductForm /></ProtectedRoute>} />
-          <Route path="/admin/products/edit/:id" element={<ProtectedRoute><AdminProductForm /></ProtectedRoute>} />
-          <Route path="/admin/categories" element={<ProtectedRoute><AdminCategories /></ProtectedRoute>} />
-          <Route path="/admin/orders" element={<ProtectedRoute><AdminOrders /></ProtectedRoute>} />
-          <Route path="/admin/newsletter" element={<ProtectedRoute><AdminNewsletter /></ProtectedRoute>} />
-          <Route path="/admin/messages" element={<ProtectedRoute><AdminContactMessages /></ProtectedRoute>} />
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/collections/:category" element={<CollectionPage />} />
-            <Route path="/collections" element={<CollectionPage />} />
-            <Route path="/products/:slug" element={<ProductPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/faq" element={<FAQPage />} />
-            <Route path="/packaging" element={<PackagingGallery />} />
-            <Route path="/track-order" element={<OrderTrackingPage />} />
-            <Route path="/shipping-policy" element={<ShippingPolicy />} />
-            <Route path="/return-policy" element={<ReturnPolicy />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/wishlist" element={<WishlistPage />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Routes>
+        <AppShell />
       </div>
       </ToastProvider>
       </CartProvider>

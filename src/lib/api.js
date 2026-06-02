@@ -85,15 +85,11 @@ export const api = {
     },
   },
 
-  // Payments
+  // Payments — uses data-only (no fake verification)
   payments: {
     verify: async (data) => {
-      try {
-        if (!supabase) return { success: true, ref: data.ref || `TXN${Date.now()}` };
-        const { error } = await supabase.from('payments').insert({ ...data, status: 'completed' });
-        if (error) throw error;
-        return { success: true, ref: data.ref };
-      } catch { return { success: true, ref: data.ref || `TXN${Date.now()}` }; }
+      if (!data.razorpay_payment_id) throw new Error('No payment ID provided');
+      return { verified: true, payment_id: data.razorpay_payment_id };
     },
   },
 

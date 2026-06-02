@@ -7,7 +7,7 @@
 .hero-layout { display: flex; gap: 56px; align-items: flex-start; margin-top: 24px; }
 .hero-gallery { flex: 0 0 480px; position: sticky; top: 140px; }
 .hero-main-image { position: relative; width: 100%; aspect-ratio: 1; border-radius: 16px; overflow: hidden; background: var(--cream); margin-bottom: 12px; border: 1px solid #eee; cursor: crosshair; }
-.hero-main-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; }
+.hero-main-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; background: var(--cream); }
 .hero-main-image.zoomed img { object-fit: cover; }
 .hero-wishlist { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--white); box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; color: var(--text-dark); cursor: pointer; transition: all 0.2s; border: none; z-index: 2; }
 .hero-wishlist:hover { background: var(--gold); color: var(--white); }

@@ -8,11 +8,14 @@ import './Footer.css';
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [cooldown, setCooldown] = useState(false);
   const { addToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || cooldown) return;
+    setCooldown(true);
+    setTimeout(() => setCooldown(false), 10000);
 
     try {
       await api.newsletter.subscribe(email.trim());
@@ -41,7 +44,7 @@ export default function Footer() {
           <h3 className="footer-heading">Keep in touch</h3>
           <p className="footer-subtext">Receive exclusive promotions, new collection alerts, news and more.</p>
           {subscribed ? (
-            <p className="footer-success">You're subscribed! Welcome to EVA family.</p>
+            <p className="footer-success">You're subscribed! Welcome to Wrappd Gift!</p>
           ) : (
             <form className="footer-form" onSubmit={handleSubmit}>
               <input
@@ -59,7 +62,7 @@ export default function Footer() {
           )}
           <p className="footer-legal">By signing up, you agree to our Terms of Service and Privacy Policy. You may unsubscribe at any time.</p>
           <div className="footer-social">
-            <a href="https://www.instagram.com/evajewelss_/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.instagram.com/wrappd_gift/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5"/></svg>
             </a>
             <a href="https://facebook.com/eva" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
@@ -106,8 +109,8 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <span>&copy; EVA {new Date().getFullYear()}</span>
-          <span className="footer-brand">EVA | India</span>
+          <span>&copy; Wrappd Gift {new Date().getFullYear()}</span>
+          <span className="footer-brand">Wrappd Gift | India</span>
         </div>
       </div>
     </footer>

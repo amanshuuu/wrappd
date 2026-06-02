@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE_URL } from '../lib/constants';
 
 export function OrganizationSchema() {
   useEffect(() => {
@@ -8,9 +9,9 @@ export function OrganizationSchema() {
     script.textContent = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'EVA',
-      url: 'https://eva-hampers.com',
-      logo: 'https://eva-hampers.com/favicon.svg',
+      name: 'Wrappd Gift',
+      url: SITE_URL,
+      logo: `${SITE_URL}/favicon.svg`,
       description: 'India\'s premier gifting destination. Curated premium hampers for every occasion.',
       contactPoint: {
         '@type': 'ContactPoint',
@@ -36,16 +37,16 @@ export function ProductSchema({ product }) {
       '@context': 'https://schema.org',
       '@type': 'Product',
       name: product.name,
-      description: product.description || `${product.name} — premium gift hamper from EVA`,
+      description: product.description || `${product.name} — premium gift hamper from Wrappd Gift`,
       image: product.image || '',
       offers: {
         '@type': 'Offer',
         price: product.price,
         priceCurrency: 'INR',
         availability: 'https://schema.org/InStock',
-        url: `https://eva-hampers.com/products/${product.slug}`,
+        url: `${SITE_URL}/products/${product.slug}`,
       },
-      brand: { '@type': 'Brand', name: 'EVA' },
+      brand: { '@type': 'Brand', name: 'Wrappd Gift' },
     });
     document.head.appendChild(script);
     return () => script.remove();

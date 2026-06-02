@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { SITE_URL } from '../lib/constants';
 import { useProducts } from '../data';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/LoadingSkeleton';
@@ -79,7 +80,7 @@ export default function CollectionPage() {
   const [showFilters, setShowFilters] = useState(false);
   const { category } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  usePageMeta({ title: category ? `${categoryLabels[category] || category} Hampers` : 'All Gift Hampers', description: `Browse our collection of ${category ? categoryLabels[category] || category : 'premium'} gift hampers. Find the perfect gift for every occasion.`, canonical: category ? `https://eva-hampers.com/collections/${category}` : 'https://eva-hampers.com/collections' });
+  usePageMeta({ title: category ? `${categoryLabels[category] || category} Hampers` : 'All Gift Hampers', description: `Browse our collection of ${category ? categoryLabels[category] || category : 'premium'} gift hampers. Find the perfect gift for every occasion.`, canonical: category ? `${SITE_URL}/collections/${category}` : `${SITE_URL}/collections` });
 
   const urlQuery = searchParams.get('q') || '';
   const urlCat = searchParams.get('category') || '';
@@ -241,7 +242,7 @@ export default function CollectionPage() {
     </div>
   );
 
-  const breadcrumbItems = [{ name: 'Home', url: 'https://eva-hampers.com/' }, { name: category ? (categoryLabels[category] || category) : 'All Hampers', url: category ? `https://eva-hampers.com/collections/${category}` : 'https://eva-hampers.com/collections' }];
+  const breadcrumbItems = [{ name: 'Home', url: `${SITE_URL}/` }, { name: category ? (categoryLabels[category] || category) : 'All Hampers', url: category ? `${SITE_URL}/collections/${category}` : `${SITE_URL}/collections` }];
 
   return (
     <>

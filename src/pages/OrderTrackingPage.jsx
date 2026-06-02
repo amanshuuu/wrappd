@@ -11,7 +11,7 @@ const STATUS_LABELS = {
 const STATUS_ICONS = { pending: IconClock, paid: IconCheck, processing: IconPackage, packed: IconPackage, shipped: IconTruck, delivered: IconCheck };
 
 export default function OrderTrackingPage() {
-  usePageMeta({ title: 'Track Your Order', description: 'Track your EVA gift hamper order in real time. Enter your order reference to see shipping status and delivery updates.' });
+  usePageMeta({ title: 'Track Your Order', description: 'Track your Wrappd Gift hamper order in real time. Enter your order reference to see shipping status and delivery updates.' });
   const [orderId, setOrderId] = useState('');
   const [order, setOrder] = useState(null);
   const [searched, setSearched] = useState(false);

@@ -85,7 +85,7 @@ export default function CheckoutPage() {
   };
 
   const createOrder = async (paymentId = '') => {
-    const result = await api.post('/orders', {
+    const result = await api.orders.create({
       customer_name: `${form.firstName} ${form.lastName}`,
       customer_email: form.email,
       customer_phone: form.phone,
@@ -111,52 +111,45 @@ export default function CheckoutPage() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
-    // Start with creating the order (payment pending)
+    if (!razorpayReady || !RAZORPAY_KEY_ID) {
+      addToast('Payment gateway not configured. Please contact support.', 'error');
+      return;
+    }
+
     setProcessing(true);
     try {
-      // Open Razorpay if configured
-      if (razorpayReady && RAZORPAY_KEY_ID) {
-        const options = {
-          key: RAZORPAY_KEY_ID,
-          amount: Math.round(total * 100),
-          currency: 'INR',
-          name: 'EVA',
-          description: `Order from ${form.firstName} ${form.lastName}`,
-          prefill: { email: form.email, contact: form.phone, name: `${form.firstName} ${form.lastName}` },
-          theme: { color: '#FF6B9D' },
-          handler: async (response) => {
-            try {
-              await api.payments.verify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              });
-              await createOrder(response.razorpay_payment_id);
-              addToast('Payment successful! Order placed.');
-            } catch {
-              addToast('Payment verification failed. Please contact support.', 'error');
-            }
-            setProcessing(false);
-          },
-          modal: {
-            ondismiss: () => {
-              setProcessing(false);
-              addToast('Payment cancelled.', 'info');
-            },
-          },
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', () => {
+      // Generate a temporary ref for Razorpay
+      const tmpRef = `ORD-${Date.now().toString(36).toUpperCase()}`;
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: Math.round(total * 100),
+        currency: 'INR',
+        name: 'Wrappd Gift',
+        description: `Order from ${form.firstName} ${form.lastName}`,
+        prefill: { email: form.email, contact: form.phone, name: `${form.firstName} ${form.lastName}` },
+        theme: { color: '#FF6B9D' },
+        handler: async (response) => {
+          try {
+            await createOrder(response.razorpay_payment_id);
+            addToast('Payment successful! Order placed.');
+          } catch (err) {
+            addToast(err.message || 'Order creation failed. Your payment was taken — please contact support.', 'error');
+          }
           setProcessing(false);
-          addToast('Payment failed. Please try again.', 'error');
-        });
-        rzp.open();
-      } else {
-        // No Razorpay configured — create order with pending payment
-        await createOrder();
-        addToast('Order placed! (Payment pending)');
+        },
+        modal: {
+          ondismiss: () => {
+            setProcessing(false);
+            addToast('Payment cancelled.', 'info');
+          },
+        },
+      };
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', () => {
         setProcessing(false);
-      }
+        addToast('Payment failed. Please try again.', 'error');
+      });
+      rzp.open();
     } catch (err) {
       setProcessing(false);
       addToast(err.message || 'Failed to create order', 'error');

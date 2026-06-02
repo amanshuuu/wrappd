@@ -23,7 +23,15 @@ export async function uploadImage(file) {
     .from(BUCKET)
     .upload(path, file, { cacheControl: '3600', upsert: false });
 
-  if (error) throw error;
+  if (error) {
+    if (error.message?.includes('bucket') || error.statusCode === 404) {
+      throw new Error(`Storage bucket "${BUCKET}" not found. Create it in Supabase Dashboard → Storage.`);
+    }
+    if (error.message?.includes('policy') || error.statusCode === 403) {
+      throw new Error('Upload denied. Run the storage policies SQL from supabase-schema.sql in Supabase SQL Editor.');
+    }
+    throw error;
+  }
 
   const { data: { publicUrl } } = supabase.storage
     .from(BUCKET)
@@ -95,6 +103,15 @@ export async function updateProduct(id, data) {
 
 export async function deleteProduct(id) {
   if (!supabase) throw new Error('Supabase not configured');
+  const { data: product } = await supabase.from('products').select('images').eq('id', id).single();
+  if (product?.images?.length) {
+    for (const imgUrl of product.images) {
+      const path = imgUrl.split(`/${BUCKET}/`)[1];
+      if (path) {
+        await supabase.storage.from(BUCKET).remove([path]).catch(() => {});
+      }
+    }
+  }
   const { error } = await supabase.from('products').delete().eq('id', id);
   if (error) throw error;
 }
@@ -116,18 +133,27 @@ export async function getOrder(ref) {
 
 export async function createOrder(data) {
   if (!supabase) throw new Error('Supabase not configured');
-  const { data: created, error } = await supabase.from('orders').insert({
-    ref: data.ref, customer_name: data.customer_name,
-    customer_email: data.customer_email, customer_phone: data.customer_phone,
-    customer_address: data.customer_address, items: data.items,
-    total: data.total, delivery: data.delivery || 0, gst: data.gst || 0,
-    payment_status: data.payment_status || 'pending',
-    order_status: data.order_status || 'pending',
-    tracking_number: data.tracking_number || '',
-    courier: data.courier || '',
-  }).select().single();
+
+  const cartItems = data.items || [];
+  if (!cartItems.length) throw new Error('Cart is empty');
+
+  const { data: result, error } = await supabase.rpc('create_order', {
+    p_customer_name: data.customer_name || '',
+    p_customer_email: data.customer_email || '',
+    p_customer_phone: data.customer_phone || '',
+    p_customer_address: data.customer_address || '',
+    p_city: data.city || '',
+    p_postal_code: data.postal_code || '',
+    p_items: JSON.stringify(cartItems),
+    p_payment_id: data.payment_id || '',
+    p_gift_message: data.gift_message || '',
+    p_idempotency_key: data.idempotency_key || '',
+  });
+
   if (error) throw error;
-  return created;
+  if (result.error) throw new Error(result.error);
+
+  return result;
 }
 
 export async function updateOrderStatus(id, data) {
@@ -228,3 +254,5 @@ export async function seedProducts(localProducts) {
   const { error } = await supabase.from('products').insert(rows);
   if (error) throw error;
 }
+
+// Admin calls supabase.auth directly

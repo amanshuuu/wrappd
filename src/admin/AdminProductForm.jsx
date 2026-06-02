@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import { uploadImage } from '../lib/supabase';
+import { compressImage } from '../lib/image';
 import { defaultProducts } from '../data';
 import { useToast } from '../context/ToastContext';
 import './AdminDashboard.css';
@@ -51,14 +52,14 @@ export default function AdminProductForm() {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { addToast('Only image files allowed', 'error'); return; }
-    if (file.size > 5 * 1024 * 1024) { addToast('Image must be under 5MB', 'error'); return; }
 
     setForm(prev => ({ ...prev, image: URL.createObjectURL(file) }));
 
     try {
-      const url = await uploadImage(file);
+      const compressed = await compressImage(file);
+      const url = await uploadImage(compressed);
       setForm(prev => ({ ...prev, image: url }));
-      addToast('Image uploaded to Supabase!');
+      addToast('Image uploaded!');
     } catch (err) {
       addToast(err.message || 'Upload failed. Paste a URL instead.', 'error');
     }

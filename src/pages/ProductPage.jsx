@@ -3,9 +3,11 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useProducts } from '../data';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
+import { openCartDrawer } from '../hooks/useCartDrawer';
 import ProductCard from '../components/ProductCard';
 import WhatsAppButton from '../components/WhatsAppButton';
 import { IconCheck, IconStar, IconArrowLeft, IconArrowRight, IconMinus, IconPlus, IconShoppingBag, IconTruck, IconShield, IconRefresh, IconHeart } from '../components/Icons';
+import { SITE_URL } from '../lib/constants';
 import usePageMeta from '../hooks/usePageMeta';
 import { ProductSchema, BreadcrumbSchema } from '../components/JsonLd';
 import './ProductPage.css';
@@ -69,7 +71,7 @@ export default function ProductPage() {
   const { addItem } = useCart();
   const { addToast } = useToast();
   const navigate = useNavigate();
-  usePageMeta({ title: product.name, description: `${product.name} — ${product.description || 'Premium gift hamper from EVA'}. Shop curated hampers for every occasion.`, canonical: `https://eva-hampers.com/products/${product.slug}`, ogImage: product.image });
+  usePageMeta({ title: product.name, description: `${product.name} — ${product.description || 'Premium gift hamper from Wrappd Gift'}. Shop curated hampers for every occasion.`, canonical: `${SITE_URL}/products/${product.slug}`, ogImage: product.image });
   const [mainImg, setMainImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('details');
@@ -170,7 +172,7 @@ export default function ProductPage() {
     <div className="product-hero"><div className="container" style={{ paddingTop: 40 }}><div className="skeleton" style={{ height: 400 }}></div></div></div>
   );
 
-  const breadcrumbItems = [{ name: 'Home', url: 'https://eva-hampers.com/' }, { name: 'Collections', url: 'https://eva-hampers.com/collections' }, { name: product.name, url: `https://eva-hampers.com/products/${product.slug}` }];
+  const breadcrumbItems = [{ name: 'Home', url: `${SITE_URL}/` }, { name: 'Collections', url: `${SITE_URL}/collections` }, { name: product.name, url: `${SITE_URL}/products/${product.slug}` }];
 
   return (
     <>
@@ -196,6 +198,7 @@ export default function ProductPage() {
                   src={images[mainImg] || product.image}
                   alt={product.name}
                   loading="lazy"
+                  onError={e => { if (!e.target.dataset.fallback) { e.target.dataset.fallback = '1'; e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" fill="%23f5f5f5"><rect width="500" height="500"/><text x="250" y="250" text-anchor="middle" dy=".3em" font-size="60" fill="%23ccc">🎁</text></svg>'; } }}
                   style={showZoom ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transform: 'scale(2)' } : {}}
                 />
                 <button className="hero-wishlist" onClick={(e) => { e.stopPropagation(); toggleWishlist(); }} aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}>
@@ -210,7 +213,7 @@ export default function ProductPage() {
               <div className="hero-thumbs">
                 {images.map((img, i) => (
                   <button key={i} className={`hero-thumb ${mainImg === i ? 'active' : ''}`} onClick={() => setMainImg(i)}>
-                    <img src={img} alt="" />
+                    <img src={img} alt={`${product.name} view ${i + 1}`} onError={e => { e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="%23f5f5f5"><rect width="80" height="80"/><text x="40" y="40" text-anchor="middle" dy=".3em" font-size="20" fill="%23ccc">🎁</text></svg>'; }} />
                   </button>
                 ))}
               </div>
@@ -232,7 +235,7 @@ export default function ProductPage() {
                 <button onClick={() => setQuantity(quantity + 1)}><IconPlus size={16} /></button>
               </div>
               <div className="hero-actions">
-                <button className="btn btn-gold" onClick={() => { addItem(product, quantity); addToast(`${product.name} added to cart!`); }}>
+                <button className="btn btn-gold" onClick={() => { addItem(product, quantity); openCartDrawer(product.name); }}>
                   <IconShoppingBag size={16} /> Add to Cart
                 </button>
                 <button className="btn btn-dark" onClick={() => { addItem(product, quantity); navigate('/checkout'); }}>
