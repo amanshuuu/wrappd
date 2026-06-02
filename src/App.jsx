@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
 import Header from './components/Header';
@@ -66,6 +67,7 @@ export default function App() {
       <ToastProvider>
       <div className="app">
         <Analytics />
+        <VercelAnalytics />
         <ScrollToTop />
         <Routes>
           <Route path="/admin" element={<AdminLogin />} />
