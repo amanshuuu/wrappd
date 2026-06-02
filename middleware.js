@@ -6,7 +6,7 @@ export const config = {
   matcher: '/admin/:path*',
 };
 
-export default function middleware(request) {
+export default async function middleware(request) {
   const url = new URL(request.url);
   const { pathname } = url;
   const cookies = request.headers.get('Cookie') || '';
