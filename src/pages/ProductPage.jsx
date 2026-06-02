@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { products } from '../data';
+import { useProducts } from '../data';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import ProductCard from '../components/ProductCard';
@@ -62,9 +62,10 @@ const occasionTagLabels = {
 };
 
 export default function ProductPage() {
+  const [allProducts, productsLoading] = useProducts();
   const [loading, setLoading] = useState(true);
   const { slug } = useParams();
-  const product = products.find(p => p.slug === slug) || products[0];
+  const product = allProducts.find(p => p.slug === slug) || allProducts[0];
   const { addItem } = useCart();
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -112,17 +113,16 @@ export default function ProductPage() {
   }, [product.id]);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 200);
-    return () => clearTimeout(t);
-  }, []);
+    if (!productsLoading) setLoading(false);
+  }, [productsLoading]);
 
   const relatedProducts = useMemo(() => {
-    if (!product.tags || product.tags.length === 0) return products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
-    const sameTag = products.filter(p =>
+    if (!product.tags || product.tags.length === 0) return allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+    const sameTag = allProducts.filter(p =>
       p.id !== product.id && p.tags && p.tags.some(t => product.tags.includes(t))
     );
     if (sameTag.length >= 4) return sameTag.slice(0, 4);
-    const extras = products.filter(p => p.id !== product.id && !sameTag.includes(p)).slice(0, 4 - sameTag.length);
+    const extras = allProducts.filter(p => p.id !== product.id && !sameTag.includes(p)).slice(0, 4 - sameTag.length);
     return [...sameTag, ...extras].slice(0, 4);
   }, [product]);
 

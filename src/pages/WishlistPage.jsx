@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { products } from '../data';
+import { useProducts } from '../data';
 import usePageMeta from '../hooks/usePageMeta';
 import './WishlistPage.css';
 
@@ -15,6 +15,7 @@ function saveWishlist(w) {
 }
 
 export default function WishlistPage() {
+  const [allProducts] = useProducts();
   usePageMeta({ title: 'My Wishlist', description: 'View your saved gift hampers and wishlist items.' });
   const [wishlist, setWishlist] = useState([]);
 
@@ -29,7 +30,7 @@ export default function WishlistPage() {
   };
 
   const wishlistProducts = wishlist
-    .map(slug => products.find(p => p.slug === slug))
+    .map(slug => allProducts.find(p => p.slug === slug))
     .filter(Boolean);
 
   return (

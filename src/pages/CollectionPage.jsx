@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { products as staticProducts } from '../data';
+import { useProducts } from '../data';
 import ProductCard from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/LoadingSkeleton';
 import { IconCheck } from '../components/Icons';
@@ -74,6 +74,7 @@ const sortOptions = [
 ];
 
 export default function CollectionPage() {
+  const [allProducts, productsLoading] = useProducts();
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const { category } = useParams();
@@ -96,9 +97,8 @@ export default function CollectionPage() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 250);
-    return () => clearTimeout(t);
-  }, []);
+    if (!productsLoading) setLoading(false);
+  }, [productsLoading]);
 
   useEffect(() => {
     setSelectedCategory(category || '');
@@ -122,7 +122,7 @@ export default function CollectionPage() {
 
   const categoryCounts = useMemo(() => {
     const counts = {};
-    staticProducts.forEach(p => {
+    allProducts.forEach(p => {
       counts[p.category] = (counts[p.category] || 0) + 1;
     });
     return counts;
@@ -131,7 +131,7 @@ export default function CollectionPage() {
   const recipientCounts = useMemo(() => {
     const counts = {};
     recipientOptions.forEach(r => {
-      counts[r.value] = staticProducts.filter(p => p.tags && p.tags.includes(r.value)).length;
+      counts[r.value] = allProducts.filter(p => p.tags && p.tags.includes(r.value)).length;
     });
     return counts;
   }, []);
@@ -139,7 +139,7 @@ export default function CollectionPage() {
   const occasionCounts = useMemo(() => {
     const counts = {};
     occasionOptions.forEach(o => {
-      counts[o.value] = staticProducts.filter(p => p.tags && p.tags.includes(o.value)).length;
+      counts[o.value] = allProducts.filter(p => p.tags && p.tags.includes(o.value)).length;
     });
     return counts;
   }, []);
@@ -148,17 +148,17 @@ export default function CollectionPage() {
     const counts = {};
     budgetOptions.forEach(b => {
       if (b.value === '2000-plus') {
-        counts[b.value] = staticProducts.filter(p => p.price >= 2000).length;
+        counts[b.value] = allProducts.filter(p => p.price >= 2000).length;
       } else {
         const max = budgetTagMap[b.value];
-        counts[b.value] = staticProducts.filter(p => p.price < max).length;
+        counts[b.value] = allProducts.filter(p => p.price < max).length;
       }
     });
     return counts;
   }, []);
 
   const filtered = useMemo(() => {
-    let result = [...staticProducts];
+    let result = [...allProducts];
 
     if (selectedCategory && categoryLabels[selectedCategory]) {
       const subCats = aggregateCats[selectedCategory];

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { api } from './lib/api';
 
 export const defaultIncluded = [
@@ -93,4 +94,14 @@ function mapSeed(p) {
     includedItems: p.included_items || p.includedItems || defaultIncluded,
     featured: Boolean(p.featured),
   };
+}
+
+export function useProducts() {
+  const [state, setState] = useState({ products: defaultProducts, loading: true });
+  useEffect(() => {
+    let active = true;
+    getProducts().then(data => { if (active) setState({ products: data, loading: false }); });
+    return () => { active = false; };
+  }, []);
+  return [state.products, state.loading];
 }
